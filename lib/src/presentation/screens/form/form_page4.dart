@@ -415,14 +415,6 @@ class _Page4State extends State<Page4> {
                               ),
                             ),
                           ],
-        
-                          const SizedBox(height: 10),
-                          ElevatedButton(
-                            onPressed: () {
-                              // Implement the continue action
-                            },
-                            child: const Text('Continue'),
-                          ),
                         ],
                       ),
                     ),

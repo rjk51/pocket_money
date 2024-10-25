@@ -40,6 +40,14 @@ dependencies:
   geocoding:
   image_picker:
   textfield_tags:
+  http:
+  dotted_border:
+  flutter_onboarding_slider:
+  syncfusion_flutter_gauges:
+  navbar_router:
+  path_provider:
+  flutter_sound:
+  permission_handler:
 
 dev_dependencies:
   flutter_test:

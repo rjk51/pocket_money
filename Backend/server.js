@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/formDetails', { 
+mongoose.connect('mongodb+srv://anujtiwari4454:JJqGzK3OKjq4cMDs@cluster0.humnu.mongodb.net/formDetails', { 
  
 })
 .then(() => console.log("MongoDB connected"))

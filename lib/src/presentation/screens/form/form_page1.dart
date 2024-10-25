@@ -1,30 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:fluent_ui/fluent_ui.dart' as f;
-import 'package:http/http.dart' as http;
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
-import 'package:image_picker/image_picker.dart'; // For image selection
 
 class Page1 extends StatefulWidget {
-  const Page1({super.key});
+  final File? profileImage;
+  final VoidCallback onImagePicked;
+
+  const Page1({super.key, this.profileImage, required this.onImagePicked});
 
   @override
   _Page1State createState() => _Page1State();
 }
 
 class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
-  DateTime? selectedDOB;
-  String? _selectedGender;
-  File? _profileImage;
-  final TextEditingController _nameController = TextEditingController();
-
-  final picker = ImagePicker();
-
-  // Animation properties
+  DateTime? selected;
   late AnimationController _controller;
   late Animation<double> _animation;
   bool _visible = false;
+  String? _selectedGender;
 
   @override
   void initState() {
@@ -33,10 +27,12 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
       duration: const Duration(seconds: 1),
       vsync: this,
     );
+
     _animation = CurvedAnimation(
       parent: _controller,
       curve: Curves.easeOut,
     );
+
     _startAnimation();
   }
 
@@ -56,61 +52,13 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
   @override
   void dispose() {
     _controller.dispose();
-    _nameController.dispose();
     super.dispose();
   }
 
-  // Function to handle gender selection
   void _selectGender(String gender) {
     setState(() {
       _selectedGender = gender;
     });
-  }
-
-  // Function to pick image from gallery
-  Future<void> _pickImage() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      setState(() {
-        _profileImage = File(pickedFile.path);
-      });
-    }
-  }
-
-  // Function to submit form data to the server
-  Future<void> _submitForm() async {
-    if (_nameController.text.isEmpty || _selectedGender == null || selectedDOB == null || _profileImage == null) {
-      // Ensure all fields are filled
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all the details')),
-      );
-      return;
-    }
-
-    // Create form data to send to the backend
-    var request = http.MultipartRequest('POST', Uri.parse('http://localhost:8000/submit-form'));
-    request.fields['name'] = _nameController.text;
-    request.fields['dob'] = selectedDOB!.toIso8601String();
-    request.fields['gender'] = _selectedGender!;
-
-    // Attach profile image
-    request.files.add(await http.MultipartFile.fromPath('profileImage', _profileImage!.path));
-
-    // Send request to backend
-    var response = await request.send();
-
-    if (response.statusCode == 200) {
-      // Handle successful response
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Form submitted successfully')),
-      );
-    } else {
-      // Handle error response
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error submitting form')),
-      );
-    }
   }
 
   @override
@@ -133,14 +81,14 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
                         children: [
                           f.Center(
                             child: GestureDetector(
-                              onTap: _pickImage,
+                              onTap: widget.onImagePicked,
                               child: CircleAvatar(
                                 radius: 60,
                                 backgroundColor: Colors.grey[300],
-                                backgroundImage: _profileImage != null
-                                    ? FileImage(_profileImage!)
+                                backgroundImage: widget.profileImage != null
+                                    ? FileImage(widget.profileImage!)
                                     : null,
-                                child: _profileImage == null
+                                child: widget.profileImage == null
                                     ? const Icon(
                                         Icons.add,
                                         size: 60,
@@ -156,9 +104,9 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
                             labelStyle: const TextStyle(
                                 color: Colors.black,
                                 fontWeight: f.FontWeight.bold),
-                            child: f.TextBox(
-                              controller: _nameController,
+                            child: const f.TextBox(
                               placeholder: 'Enter full name',
+                              expands: false,
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -167,12 +115,8 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
                             headerStyle: const TextStyle(
                                 color: Colors.black,
                                 fontWeight: f.FontWeight.bold),
-                            selected: selectedDOB,
-                            onChanged: (time) {
-                              setState(() {
-                                selectedDOB = time;
-                              });
-                            },
+                            selected: selected,
+                            onChanged: (time) {},
                           ),
                           const SizedBox(height: 10),
                           const Text('Gender',
@@ -188,8 +132,7 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
                                 style: ElevatedButton.styleFrom(
                                   foregroundColor: _selectedGender == 'Male'
                                       ? Colors.white
-                                      : Colors.black,
-                                  backgroundColor: _selectedGender == 'Male'
+                                      : Colors.black, backgroundColor: _selectedGender == 'Male'
                                       ? Colors.black
                                       : Colors.white,
                                   side: const BorderSide(
@@ -203,8 +146,7 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
                                 style: ElevatedButton.styleFrom(
                                   foregroundColor: _selectedGender == 'Female'
                                       ? Colors.white
-                                      : Colors.black,
-                                  backgroundColor: _selectedGender == 'Female'
+                                      : Colors.black, backgroundColor: _selectedGender == 'Female'
                                       ? Colors.black
                                       : Colors.white,
                                   side: const BorderSide(
@@ -214,16 +156,30 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 20),
-                          ElevatedButton(
-                            onPressed: _submitForm,
-                            child: const Text('Submit'),
-                          ),
                         ],
                       ),
                     ),
                   ),
                 ],
+              ),
+            ),
+            // Bottom left image with pop animation
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: AnimatedBuilder(
+                animation: _controller,
+                child: Image.asset(
+                  'assets/page1.png', // Replace with your image path
+                  height: 200, // Adjust the size as needed
+                  width: 250,
+                ),
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: _animation.value,
+                    child: child,
+                  );
+                },
               ),
             ),
           ],

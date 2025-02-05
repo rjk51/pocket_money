@@ -76,6 +76,7 @@ git push origin feature/your-feature-name
 ### Getting Help
 
 If you have any questions or need assistance, feel free to open an issue or contact us through the provided communication channels. We're here to help!
+we are open for Pr so reach out anytime 
 
 Thank you for contributing to **Pocket Money** and helping us empower young adults with part-time job opportunities!
 ## API Reference
